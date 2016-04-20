@@ -9,7 +9,10 @@ import (
 type TokenType int
 
 const (
-	TOctoHeadingLine TokenType = iota
+	TIllegal TokenType = iota
+	TEof
+
+	TOctoHeadingLine
 	TAtSignHeadingLine
 
 	TExclaimLine
@@ -25,12 +28,12 @@ const (
 	TNewLine
 	TString
 	TComment
-
-	TIllegal
-	TEof
 )
 
 var typeNames = map[TokenType]string{
+	TIllegal: "TIllegal",
+	TEof:     "TEof",
+
 	TOctoHeadingLine:   "TOctoHeading",
 	TAtSignHeadingLine: "TAtSignHeading",
 
@@ -48,9 +51,6 @@ var typeNames = map[TokenType]string{
 	TComment:    "TComment",
 
 	TAstrisk: "TAstrisk",
-
-	TIllegal: "TIllegal",
-	TEof:     "TEof",
 }
 
 type Token struct {
