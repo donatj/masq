@@ -6,10 +6,6 @@ import (
 	"os"
 )
 
-// func init() {
-// flag.Parse()
-// }
-
 type TokenType int
 
 const (
@@ -21,6 +17,7 @@ const (
 	TDashLine
 	TColonLine
 
+	TAstrisk
 	TSigned
 	TNullable
 
@@ -49,6 +46,8 @@ var typeNames = map[TokenType]string{
 	TNewLine:    "TNewLine",
 	TString:     "TString",
 	TComment:    "TComment",
+
+	TAstrisk: "TAstrisk",
 
 	TIllegal: "TIllegal",
 	TEof:     "TEof",

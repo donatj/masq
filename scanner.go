@@ -11,7 +11,8 @@ var eof = rune(0)
 
 // Scanner represents a lexical scanner.
 type Scanner struct {
-	r *bufio.Reader
+	init bool
+	r    *bufio.Reader
 }
 
 // NewScanner returns a new instance of Scanner.
@@ -60,20 +61,22 @@ func (s *Scanner) scanWhitespace() (TokenType, string) {
 }
 
 // unread places the previously read rune back on the reader.
-func (s *Scanner) unread() { _ = s.r.UnreadRune() }
+func (s *Scanner) unread() {
+	err := s.r.UnreadRune()
+	if err != nil {
+		panic(err)
+	}
+}
 
 // Scan returns the next token and literal value.
 func (s *Scanner) Scan() (tok TokenType, lit string) {
 	// Read the next rune.
 	ch := s.read()
 
-	// If we see whitespace then consume all contiguous whitespace.
-	// If we see a letter then consume as an ident or reserved word.
-
-	// fmt.Println(ch)
-
-	if isNewline(ch) {
-		return TNewLine, string(ch)
+	if isNewline(ch) || !s.init {
+		s.init = true
+		s.unread()
+		return s.scanNewline()
 	} else if isWhitespace(ch) {
 		s.unread()
 		return s.scanWhitespace()
@@ -91,19 +94,48 @@ func (s *Scanner) Scan() (tok TokenType, lit string) {
 	switch ch {
 	case eof:
 		return TEof, ""
-	case '@':
-		return TAtSignHeadingLine, string(ch)
-	case '#':
-		return TOctoHeadingLine, string(ch)
-	case '!':
-		return TExclaimLine, string(ch)
-	case ':':
-		return s.scanColonLine()
+	case '*':
+		return TAstrisk, string(ch)
 	case '-':
-		return TDashLine, string(ch)
+		return TSigned, string(ch)
 	}
 
 	return TIllegal, string(ch)
+}
+
+func (s *Scanner) scanNewline() (TokenType, string) {
+	var buf bytes.Buffer
+
+	for {
+		nl := s.read()
+		buf.WriteRune(nl)
+
+		if !isNewline(nl) && !isWhitespace(nl) {
+			break
+		}
+	}
+
+	s.unread()
+	ch := s.read() // already in buffer
+
+	switch ch {
+	case eof:
+		return TEof, buf.String()
+	case '@':
+		return TAtSignHeadingLine, buf.String()
+	case '#':
+		return TOctoHeadingLine, buf.String()
+	case '!':
+		return TExclaimLine, buf.String()
+	case '?':
+		return TQuestionLine, buf.String()
+	case ':':
+		return s.scanColonLine()
+	case '-':
+		return TDashLine, buf.String()
+	}
+
+	return TIllegal, buf.String()
 }
 
 func (s *Scanner) scanString() (TokenType, string) {
@@ -118,7 +150,7 @@ func (s *Scanner) scanString() (TokenType, string) {
 		} else if ch == mark && prev != '\\' {
 			break
 		} else {
-			_, _ = buf.WriteRune(ch)
+			buf.WriteRune(ch)
 			prev = ch
 		}
 	}
@@ -141,7 +173,7 @@ func (s *Scanner) scanColonLine() (TokenType, string) {
 			s.unread()
 			break
 		} else {
-			_, _ = buf.WriteRune(ch)
+			buf.WriteRune(ch)
 		}
 	}
 
@@ -158,23 +190,13 @@ func (s *Scanner) scanIdent() (TokenType, string) {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isLetter(ch) && !isDigit(ch) {
+		} else if !isLetter(ch) && !isDigit(ch) && ch != '_' {
 			s.unread()
 			break
 		} else {
-			_, _ = buf.WriteRune(ch)
+			buf.WriteRune(ch)
 		}
 	}
-
-	// If the string matches a keyword then return that keyword.
-	/*
-		switch strings.ToUpper(buf.String()) {
-		case "SELECT":
-			return SELECT, buf.String()
-		case "FROM":
-			return FROM, buf.String()
-		}
-	*/
 
 	// Otherwise return as a regular identifier.
 	return TString, buf.String()
