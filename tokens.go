@@ -16,7 +16,7 @@ const (
 
 	TAstrisk
 	TSigned
-	TNullable
+	// TNullable
 
 	TWhitespace
 	TNewLine
@@ -36,19 +36,30 @@ var typeNames = map[TokenType]string{
 	TDashLine:     "TDashLine",
 	TColonLine:    "TColonLine",
 
-	TSigned:   "TSigned",
-	TNullable: "TNullable",
+	TAstrisk: "TAstrisk",
+	TSigned:  "TSigned",
+	// TNullable: "TNullable",
 
 	TWhitespace: "TWhitespace",
 	TNewLine:    "TNewLine",
 	TString:     "TString",
 	TComment:    "TComment",
-
-	TAstrisk: "TAstrisk",
 }
 
 // HeadingTokens lists tokens that are propper headings
 var HeadingTokens = []TokenType{
 	TOctoHeadingLine,
 	TAtSignHeadingLine,
+}
+
+// ColumnTokens lists tokens that can begin column lines.
+var ColumnTokens = []TokenType{
+	TExclaimLine,
+	TQuestionLine,
+	TDashLine,
+}
+
+var TypeDecorators = []TokenType{
+	TSigned,
+	TAstrisk,
 }

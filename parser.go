@@ -35,38 +35,17 @@ func (p *Parser) scan() (tok TokenType, lit string) {
 	return
 }
 
+func (p *Parser) unscan() {
+	//this is trash
+	p.buf.n = 1
+}
+
 func (p *Parser) scanIgnoreWhitespace() (tok TokenType, lit string) {
 	tok, lit = p.scan()
 	if tok == TWhitespace {
 		tok, lit = p.scan()
 	}
 	return
-}
-
-// Schema represents the root level schema
-type Schema struct {
-	Tables []*CreateTable
-}
-
-// CreateTable represents a table as a whole
-type CreateTable struct {
-	IsPsuedo     bool
-	TableName    string
-	TableColumns []*TableColumn
-}
-
-type ColumnReferenceType int
-
-const (
-	ColumnRegular ColumnReferenceType = iota
-	ColumnForeignKeyRegister
-	ColumnForeignKeyReference
-)
-
-// TableColumn represents the column of a table
-type TableColumn struct {
-	ColumnName          string
-	ColumnReferenceType ColumnReferenceType
 }
 
 func tokenArrayContains(t TokenType, types []TokenType) bool {
@@ -79,7 +58,7 @@ func tokenArrayContains(t TokenType, types []TokenType) bool {
 	return false
 }
 
-// Parser parses scanner result
+// Parse parses scanner result
 func (p *Parser) Parse() (*Schema, error) {
 	sch := &Schema{}
 
@@ -102,6 +81,64 @@ func (p *Parser) Parse() (*Schema, error) {
 
 		tbl.TableName = lit
 		sch.Tables = append(sch.Tables, tbl)
+
+		for {
+			var coltok TokenType
+			var collit string
+
+			if coltok, collit = p.scanIgnoreWhitespace(); !tokenArrayContains(coltok, ColumnTokens) {
+				return nil, fmt.Errorf("found %q %s, expected Column", collit, typeNames[coltok])
+			}
+
+			col := &TableColumn{}
+
+			switch coltok {
+			case TExclaimLine:
+				col.ColumnReferenceType = ColumnForeignKeyRegister
+			case TQuestionLine:
+				col.ColumnReferenceType = ColumnForeignKeyReference
+			case TDashLine:
+				col.ColumnReferenceType = ColumnRegular
+			default:
+				return nil, fmt.Errorf("unexpected token: %s", typeNames[coltok])
+			}
+
+			var colntok TokenType
+			var colnlit string
+			if colntok, colnlit = p.scanIgnoreWhitespace(); colntok != TString {
+				return nil, fmt.Errorf("found %q %s, expected Column Name", colnlit, typeNames[colntok])
+			}
+
+			col.ColumnName = colnlit
+
+		ModLoop:
+			for {
+				modtok, _ := p.scanIgnoreWhitespace()
+				switch modtok {
+				case TAstrisk:
+					col.Nullable = true
+				case TSigned:
+					col.Signed = true
+				case TString:
+					p.unscan()
+					break ModLoop
+				default:
+					return nil, fmt.Errorf("unexpected token: %s", typeNames[coltok])
+				}
+			} //todo limit to one of each
+
+			_, ctype := p.scan()
+			cctype, err := ColumnTypes.getColumnType(ctype)
+			if err != nil {
+				return nil, err
+			}
+
+			col.ColumnType = cctype
+
+			tbl.TableColumns = append(tbl.TableColumns, col)
+
+			break
+		}
 
 		break
 	}
