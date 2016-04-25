@@ -11,6 +11,7 @@ type Schema struct {
 type CreateTable struct {
 	IsPsuedo     bool
 	TableName    string
+	TableComment string
 	TableColumns []*TableColumn
 }
 

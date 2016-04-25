@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Parser represents a parser.
 type Parser struct {
@@ -81,6 +84,18 @@ func (p *Parser) Parse() (*Schema, error) {
 
 		tbl.TableName = lit
 		sch.Tables = append(sch.Tables, tbl)
+
+	TblCommentLoop:
+		for {
+			comtok, comlit := p.scanIgnoreWhitespace()
+			if comtok == TColonLine {
+				tbl.TableComment += comlit + "\n"
+			} else {
+				tbl.TableComment = strings.TrimSpace(tbl.TableComment)
+				p.unscan()
+				break TblCommentLoop
+			}
+		}
 
 		for {
 			var coltok TokenType

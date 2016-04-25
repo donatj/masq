@@ -1,5 +1,6 @@
 package main
 
+// TokenType indicates the type of token being represented
 type TokenType int
 
 const (
