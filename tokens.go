@@ -47,7 +47,7 @@ var typeNames = map[TokenType]string{
 	TComment:    "TComment",
 }
 
-// HeadingTokens lists tokens that are propper headings
+// HeadingTokens lists tokens that are proper headings
 var HeadingTokens = []TokenType{
 	TOctoHeadingLine,
 	TAtSignHeadingLine,
