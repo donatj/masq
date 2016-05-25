@@ -13,9 +13,18 @@ type CreateTable struct {
 	TableName    string
 	TableComment string
 	TableColumns []*TableColumn
+
+	PrimaryKey *TableKey
+	Keys       map[string]*TableKey
+}
+
+type TableKey struct {
+	Name string
 }
 
 // ColumnReferenceType is the parsed column reference type
+//
+//go:generate stringer -type=ColumnReferenceType
 type ColumnReferenceType int
 
 const (
@@ -25,6 +34,8 @@ const (
 )
 
 // ColumnType represents the MySQL type of column
+//
+//go:generate stringer -type=ColumnType
 type ColumnType int
 
 const (
@@ -102,4 +113,6 @@ type TableColumn struct {
 
 	Signed   bool
 	Nullable bool
+
+	AutoIncr bool
 }

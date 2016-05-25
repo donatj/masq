@@ -1,6 +1,8 @@
 package main
 
 // TokenType indicates the type of token being represented
+//
+//go:generate stringer -type=TokenType
 type TokenType int
 
 const (
@@ -24,28 +26,6 @@ const (
 	TString
 	TComment
 )
-
-var typeNames = map[TokenType]string{
-	TIllegal: "TIllegal",
-	TEof:     "TEof",
-
-	TOctoHeadingLine:   "TOctoHeading",
-	TAtSignHeadingLine: "TAtSignHeading",
-
-	TExclaimLine:  "TExclaimLine",
-	TQuestionLine: "TQuestionLine",
-	TDashLine:     "TDashLine",
-	TColonLine:    "TColonLine",
-
-	TAstrisk: "TAstrisk",
-	TSigned:  "TSigned",
-	// TNullable: "TNullable",
-
-	TWhitespace: "TWhitespace",
-	TNewLine:    "TNewLine",
-	TString:     "TString",
-	TComment:    "TComment",
-}
 
 // HeadingTokens lists tokens that are proper headings
 var HeadingTokens = []TokenType{
