@@ -40,6 +40,7 @@ var ColumnTokens = []TokenType{
 	TDashLine,
 }
 
+// TypeDecorators lists tokens that represent type decorations
 var TypeDecorators = []TokenType{
 	TSigned,
 	TAstrisk,

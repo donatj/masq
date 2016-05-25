@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func main() {
@@ -19,7 +21,7 @@ func main() {
 	fmt.Printf("%#v", sc)
 
 	for _, tbl := range sc.Tables {
-		fmt.Printf("%#v", tbl.TableName)
+		spew.Dump(tbl)
 	}
 
 }
