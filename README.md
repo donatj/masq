@@ -1,4 +1,6 @@
-# misstep-go
-[![Go Report Card](https://goreportcard.com/badge/github.com/donatj/misstep-go)](https://goreportcard.com/report/github.com/donatj/misstep-go)
+# MASQ
+[![Go Report Card](https://goreportcard.com/badge/github.com/donatj/masq)](https://goreportcard.com/report/github.com/donatj/masq)
 
-An exparamental reimplementation of [Misstep](https://github.com/donatj/misstep) in Go using a more classical parser.
+(M)ASQ (A)in't (SQ)L; It's a tool for generating sql create tables using a friendly markdown-esq syntax with sane defaults.
+
+It is currently an exparamental reimplementation of [Misstep](https://github.com/donatj/misstep) in Go using a more classical parser.
