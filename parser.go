@@ -70,7 +70,7 @@ func (p *Parser) Parse() (*Schema, error) {
 		var tok TokenType
 		var lit string
 		if tok, lit = p.scanIgnoreWhitespace(); !tokenArrayContains(tok, HeadingTokens) {
-			return nil, fmt.Errorf("found %q %s, expected Heading", lit, tok.String())
+			return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, HeadingTokens)
 		}
 
 		tbl := &CreateTable{}
@@ -79,7 +79,7 @@ func (p *Parser) Parse() (*Schema, error) {
 		}
 
 		if tok, lit = p.scanIgnoreWhitespace(); tok != TString {
-			return nil, fmt.Errorf("found %q %s, expected TableName", lit, tok.String())
+			return nil, fmt.Errorf("found %q %s, expected TableName", lit, tok)
 		}
 
 		tbl.TableName = lit
@@ -102,7 +102,7 @@ func (p *Parser) Parse() (*Schema, error) {
 			var collit string
 
 			if coltok, collit = p.scanIgnoreWhitespace(); !tokenArrayContains(coltok, ColumnTokens) {
-				return nil, fmt.Errorf("found %q %s, expected Column", collit, coltok.String())
+				return nil, fmt.Errorf("found %q %s, expected %s", collit, coltok, ColumnTokens)
 			}
 
 			col := &TableColumn{}
@@ -115,13 +115,13 @@ func (p *Parser) Parse() (*Schema, error) {
 			case TDashLine:
 				col.ColumnReferenceType = ColumnRegular
 			default:
-				return nil, fmt.Errorf("unexpected token: %s", coltok.String())
+				return nil, fmt.Errorf("unexpected token: %s", coltok)
 			}
 
 			var colntok TokenType
 			var colnlit string
 			if colntok, colnlit = p.scanIgnoreWhitespace(); colntok != TString {
-				return nil, fmt.Errorf("found %q %s, expected Column Name", colnlit, colntok.String())
+				return nil, fmt.Errorf("found %q %s, expected Column Name", colnlit, colntok)
 			}
 
 			col.ColumnName = colnlit
@@ -138,7 +138,7 @@ func (p *Parser) Parse() (*Schema, error) {
 					p.unscan()
 					break ModLoop
 				default:
-					return nil, fmt.Errorf("unexpected token: %s", coltok.String())
+					return nil, fmt.Errorf("unexpected token: %s", coltok)
 				}
 			} //todo limit to one of each
 
@@ -152,7 +152,7 @@ func (p *Parser) Parse() (*Schema, error) {
 
 			tbl.TableColumns = append(tbl.TableColumns, col)
 
-			break
+			// break
 		}
 
 		break
