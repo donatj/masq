@@ -69,7 +69,13 @@ TableLoop:
 	for {
 		var tok TokenType
 		var lit string
-		if tok, lit = p.scanIgnoreWhitespace(); !tokenArrayContains(tok, HeadingTokens) {
+
+		tok, lit = p.scanIgnoreWhitespace()
+		if tok == TEof {
+			break
+		}
+
+		if !tokenArrayContains(tok, HeadingTokens) {
 			return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, HeadingTokens)
 		}
 
@@ -105,6 +111,11 @@ TableLoop:
 
 			if coltok, collit = p.scanIgnoreWhitespace(); !tokenArrayContains(coltok, ColumnTokens) {
 				if tokenArrayContains(coltok, HeadingTokens) {
+					p.unscan()
+					continue TableLoop
+				}
+
+				if coltok == TEof {
 					p.unscan()
 					continue TableLoop
 				}
@@ -211,7 +222,7 @@ TableLoop:
 			// break
 		}
 
-		break
+		// break
 	}
 
 	return sch, nil
