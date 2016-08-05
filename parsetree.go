@@ -15,7 +15,8 @@ type CreateTable struct {
 	TableColumns []*TableColumn
 
 	PrimaryKey TableKeyColumns
-	Keys       map[string]TableKeyColumns
+	UniqueKeys map[int]TableKeyColumns
+	Keys       map[int]TableKeyColumns
 
 	// There can be zero or 1 AutoIncrement Column
 	AutoIncrColumn *TableColumn

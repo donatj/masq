@@ -79,7 +79,10 @@ TableLoop:
 			return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, HeadingTokens)
 		}
 
-		tbl := &CreateTable{}
+		tbl := &CreateTable{
+			UniqueKeys: make(map[int]TableKeyColumns),
+			Keys:       make(map[int]TableKeyColumns),
+		}
 		if tok == TAtSignHeadingLine {
 			tbl.IsPsuedo = true
 		}
