@@ -4,14 +4,14 @@ package main
 
 import "fmt"
 
-const _ColumnType_name = "ColumnTypeIntColumnTypeTinyIntColumnTypeSmallIntColumnTypeMediumIntColumnTypeBigIntColumnTypeFloatColumnTypeDoubleColumnTypeDecimalColumnTypeDateColumnTypeDatetimeColumnTypeTimestampColumnTypeTimeColumnTypeYearColumnTypeCharColumnTypeVarcharColumnTypeTextColumnTypeTinyTextColumnTypeMediumTextColumnTypeLongText"
+const _ColumnType_name = "ColumnTypeIntColumnTypeTinyIntColumnTypeSmallIntColumnTypeMediumIntColumnTypeBigIntColumnTypeFloatColumnTypeDoubleColumnTypeDecimalColumnTypeDateColumnTypeDatetimeColumnTypeTimestampColumnTypeTimeColumnTypeYearColumnTypeCharColumnTypeVarcharColumnTypeTextColumnTypeTinyTextColumnTypeMediumTextColumnTypeLongTextColumnTypeBool"
 
-var _ColumnType_index = [...]uint16{0, 13, 30, 48, 67, 83, 98, 114, 131, 145, 163, 182, 196, 210, 224, 241, 255, 273, 293, 311}
+var _ColumnType_index = [...]uint16{0, 13, 30, 48, 67, 83, 98, 114, 131, 145, 163, 182, 196, 210, 224, 241, 255, 273, 293, 311, 325}
 
 func (i ColumnType) String() string {
-	i -= 1
+	i -= 2
 	if i < 0 || i >= ColumnType(len(_ColumnType_index)-1) {
-		return fmt.Sprintf("ColumnType(%d)", i+1)
+		return fmt.Sprintf("ColumnType(%d)", i+2)
 	}
 	return _ColumnType_name[_ColumnType_index[i]:_ColumnType_index[i+1]]
 }
