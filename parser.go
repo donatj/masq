@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -178,13 +179,14 @@ TableLoop:
 			col.ColumnSize = csize
 			tbl.TableColumns = append(tbl.TableColumns, col)
 
+			// KEYLOOP:
 			for {
 				tok, lit := p.scanIgnoreWhitespace()
-
-				fmt.Println(tok, lit)
+				// log.Println(lit)
+				log.Println("xxx", tok, lit)
 
 				if tok != TString && tok != TAstrisk {
-					fmt.Println("continuing", tok, lit)
+					log.Println("keyloop continuing", tok, lit)
 					p.unscan()
 					break
 				}
@@ -198,15 +200,37 @@ TableLoop:
 						return nil, fmt.Errorf("auto increment column already declared")
 					}
 
-					tok, lit := p.scanIgnoreWhitespace()
+					tok, lit = p.scanIgnoreWhitespace()
 					if tok != TString {
 						return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, TString)
 					}
+
+					// continue KEYLOOP
 				}
 
+				log.Println("AAAAAAAAAAA", lit, tok)
 				if lit == "pk" {
-				} else if lit[0:1] == "k" {
-				} else if lit[0:1] == "u" {
+					log.Println("PRIMARY KEY", lit, tok)
+					tbl.PrimaryKey = append(tbl.PrimaryKey, col)
+				} else if lit[0:1] == "k" || lit[0:1] == "u" {
+					log.Println("KEY", lit, tok)
+					sPart, kIndex, err := strIntSuffixSplit(lit)
+					if err != nil || kIndex <= 0 {
+						return nil, fmt.Errorf("found '%s'; expected key name - %s", lit, err)
+					}
+
+					switch sPart {
+					case "k":
+						tbl.Keys[kIndex] = append(tbl.Keys[kIndex], col)
+					case "u":
+						tbl.UniqueKeys[kIndex] = append(tbl.UniqueKeys[kIndex], col)
+					default:
+						return nil, fmt.Errorf("found '%s'; expected key name - %s", lit, err)
+					}
+
+					// strIntSuffixSplit
+				} else {
+					return nil, fmt.Errorf("found '%s'; expected key name - %s", lit, err)
 				}
 			}
 
