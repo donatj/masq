@@ -11,7 +11,7 @@ type Schema struct {
 type CreateTable struct {
 	IsPsuedo     bool
 	TableName    string
-	TableComment string
+	TableComment []string
 	TableColumns []*TableColumn
 
 	PrimaryKey TableKeyColumns
@@ -118,7 +118,7 @@ var ColumnTypes = columnTypes{
 // TableColumn represents the column of a table
 type TableColumn struct {
 	ColumnName          string
-	ColumnComment       string
+	ColumnComment       []string
 	ColumnType          ColumnType
 	ColumnSize          int
 	ColumnReferenceType ColumnReferenceType

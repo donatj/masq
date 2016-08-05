@@ -89,9 +89,10 @@ TableLoop:
 		for {
 			comtok, comlit := p.scanIgnoreWhitespace()
 			if comtok == TColonLine {
-				tbl.TableComment += comlit + "\n"
+				tbl.TableComment = append(tbl.TableComment, strings.TrimSpace(comlit))
 			} else {
-				tbl.TableComment = strings.TrimSpace(tbl.TableComment)
+				// I don't believe this is nessessary anymore
+				// tbl.TableComment = strings.TrimSpace(tbl.TableComment)
 				p.unscan()
 				break TblCommentLoop
 			}
@@ -199,9 +200,10 @@ TableLoop:
 			for {
 				comtok, comlit := p.scanIgnoreWhitespace()
 				if comtok == TColonLine {
-					col.ColumnComment += comlit + "\n"
+					col.ColumnComment = append(col.ColumnComment, strings.TrimSpace(comlit))
 				} else {
-					col.ColumnComment = strings.TrimSpace(col.ColumnComment)
+					// This shouldn't be nessessary
+					// col.ColumnComment = strings.TrimSpace(col.ColumnComment)
 					p.unscan()
 					break ColCommentLoop
 				}
