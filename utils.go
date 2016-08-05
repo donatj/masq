@@ -12,6 +12,7 @@ var (
 func strIntSuffixSplit(s string) (string, int, error) {
 	ostr := ""
 	osint := ""
+	oint := 0
 
 	intStart := false
 	for _, r := range s {
@@ -28,9 +29,13 @@ func strIntSuffixSplit(s string) (string, int, error) {
 		}
 	}
 
-	oint, err := strconv.Atoi(osint)
-	if err != nil {
-		return "", 0, err
+	var err error
+
+	if osint != "" {
+		oint, err = strconv.Atoi(osint)
+		if err != nil {
+			return "", 0, err
+		}
 	}
 
 	return ostr, oint, nil
