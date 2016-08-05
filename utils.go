@@ -9,6 +9,7 @@ var (
 	errUnexpectedStringSuffix = errors.New("unexpected strIntSuffix string")
 )
 
+// todo: move back into the parser somehow maybe
 func strIntSuffixSplit(s string) (string, int, error) {
 	ostr := ""
 	osint := ""
@@ -19,7 +20,6 @@ func strIntSuffixSplit(s string) (string, int, error) {
 		isD := isDigit(r)
 
 		if !isD && !intStart {
-
 			ostr += string(r)
 		} else if isD {
 			intStart = true
