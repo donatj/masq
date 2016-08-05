@@ -65,7 +65,7 @@ func tokenArrayContains(t TokenType, types []TokenType) bool {
 func (p *Parser) Parse() (*Schema, error) {
 	sch := &Schema{}
 
-	// First token should be a "SELECT" keyword.
+TableLoop:
 	for {
 		var tok TokenType
 		var lit string
@@ -97,11 +97,17 @@ func (p *Parser) Parse() (*Schema, error) {
 			}
 		}
 
+		// ColumnLoop:
 		for {
 			var coltok TokenType
 			var collit string
 
 			if coltok, collit = p.scanIgnoreWhitespace(); !tokenArrayContains(coltok, ColumnTokens) {
+				if tokenArrayContains(coltok, HeadingTokens) {
+					p.unscan()
+					continue TableLoop
+				}
+
 				return nil, fmt.Errorf("found %q %s, expected %s", collit, coltok, ColumnTokens)
 			}
 
@@ -138,20 +144,68 @@ func (p *Parser) Parse() (*Schema, error) {
 					p.unscan()
 					break ModLoop
 				default:
-					return nil, fmt.Errorf("unexpected token: %s", coltok)
+					return nil, fmt.Errorf("unexpected token: %s", modtok)
 				}
 			} //todo limit to one of each
 
 			_, ctype := p.scan()
+			ctype, csize, err := strIntSuffixSplit(ctype)
+			if err != nil {
+				return nil, err
+			}
+
 			cctype, err := ColumnTypes.getColumnType(ctype)
 			if err != nil {
 				return nil, err
 			}
 
 			col.ColumnType = cctype
-
+			col.ColumnSize = csize
 			tbl.TableColumns = append(tbl.TableColumns, col)
 
+			for {
+				tok, lit := p.scanIgnoreWhitespace()
+
+				fmt.Println(tok, lit)
+
+				if tok != TString && tok != TAstrisk {
+					fmt.Println("continuing", tok, lit)
+					p.unscan()
+					break
+				}
+
+				// autoIncr := false
+				if tok == TAstrisk {
+					// autoIncr = true
+					if tbl.AutoIncrColumn == nil {
+						tbl.AutoIncrColumn = col
+					} else {
+						return nil, fmt.Errorf("auto increment column already declared")
+					}
+
+					tok, lit := p.scanIgnoreWhitespace()
+					if tok != TString {
+						return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, TString)
+					}
+				}
+
+				if lit == "pk" {
+				} else if lit[0:1] == "k" {
+				} else if lit[0:1] == "u" {
+				}
+			}
+
+		ColCommentLoop:
+			for {
+				comtok, comlit := p.scanIgnoreWhitespace()
+				if comtok == TColonLine {
+					col.ColumnComment += comlit + "\n"
+				} else {
+					col.ColumnComment = strings.TrimSpace(col.ColumnComment)
+					p.unscan()
+					break ColCommentLoop
+				}
+			}
 			// break
 		}
 
@@ -159,35 +213,4 @@ func (p *Parser) Parse() (*Schema, error) {
 	}
 
 	return sch, nil
-
-	// // Next we should loop over all our comma-delimited fields.
-	// for {
-	// 	// Read a field.
-	// 	tok, lit := p.scanIgnoreWhitespace()
-	// 	if tok != IDENT && tok != ASTERISK {
-	// 		return nil, fmt.Errorf("found %q, expected field", lit)
-	// 	}
-	// 	stmt.Fields = append(stmt.Fields, lit)
-
-	// 	// If the next token is not a comma then break the loop.
-	// 	if tok, _ := p.scanIgnoreWhitespace(); tok != COMMA {
-	// 		p.unscan()
-	// 		break
-	// 	}
-	// }
-
-	// // Next we should see the "FROM" keyword.
-	// if tok, lit := p.scanIgnoreWhitespace(); tok != FROM {
-	// 	return nil, fmt.Errorf("found %q, expected FROM", lit)
-	// }
-
-	// // Finally we should read the table name.
-	// tok, lit := p.scanIgnoreWhitespace()
-	// if tok != IDENT {
-	// 	return nil, fmt.Errorf("found %q, expected table name", lit)
-	// }
-	// stmt.TableName = lit
-
-	// // Return the successfully parsed statement.
-	// return stmt, nil
 }

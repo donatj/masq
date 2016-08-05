@@ -14,13 +14,14 @@ type CreateTable struct {
 	TableComment string
 	TableColumns []*TableColumn
 
-	PrimaryKey *TableKey
-	Keys       map[string]*TableKey
+	PrimaryKey TableKeyColumns
+	Keys       map[string]TableKeyColumns
+
+	// There can be zero or 1 AutoIncrement Column
+	AutoIncrColumn *TableColumn
 }
 
-type TableKey struct {
-	Name string
-}
+type TableKeyColumns []*TableColumn
 
 // ColumnReferenceType is the parsed column reference type
 //
@@ -40,7 +41,7 @@ type ColumnType int
 
 const (
 	_                        = iota
-	ColumnTypeInt ColumnType = iota
+	ColumnTypeInt ColumnType = iota + 1
 	ColumnTypeTinyInt
 	ColumnTypeSmallInt
 	ColumnTypeMediumInt
@@ -64,11 +65,20 @@ const (
 	ColumnTypeMediumText
 	ColumnTypeLongText
 	// ColumnTypeEnum
+
+	ColumnTypeBool
 )
 
 type columnTypes map[ColumnType]string
 
 func (c *columnTypes) getColumnType(input string) (ColumnType, error) {
+	switch input {
+	case "boolean":
+		fallthrough
+	case "bool":
+		input = "tinyint"
+	}
+
 	for t, c := range *c {
 		if c == input {
 			return t, nil
@@ -108,7 +118,9 @@ var ColumnTypes = columnTypes{
 // TableColumn represents the column of a table
 type TableColumn struct {
 	ColumnName          string
+	ColumnComment       string
 	ColumnType          ColumnType
+	ColumnSize          int
 	ColumnReferenceType ColumnReferenceType
 
 	Signed   bool
