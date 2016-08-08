@@ -6,12 +6,13 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/donatj/masq"
 )
 
 func main() {
 	r := bufio.NewReader(os.Stdin)
-	s := NewScanner(r)
-	p := NewParser(s)
+	s := masq.NewScanner(r)
+	p := masq.NewParser(s)
 
 	sc, err := p.Parse()
 	if err != nil {

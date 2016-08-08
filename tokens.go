@@ -1,4 +1,4 @@
-package main
+package masq
 
 // TokenType indicates the type of token being represented
 //
