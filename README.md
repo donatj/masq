@@ -1,5 +1,8 @@
 # MASQ
-[![Go Report Card](https://goreportcard.com/badge/github.com/donatj/masq)](https://goreportcard.com/report/github.com/donatj/masq) [![Build Status](https://travis-ci.org/donatj/masq.svg?branch=master)](https://travis-ci.org/donatj/masq)
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/donatj/masq)](https://goreportcard.com/report/github.com/donatj/masq)
+[![GoDoc](https://godoc.org/github.com/donatj/masq?status.svg)](https://godoc.org/github.com/donatj/masq)
+[![Build Status](https://travis-ci.org/donatj/masq.svg?branch=master)](https://travis-ci.org/donatj/masq)
 
 (M)ASQ (A)in't (SQ)L; It's a tool for generating sql create tables using a friendly markdown-esq syntax with sane defaults.
 
