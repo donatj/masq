@@ -128,7 +128,9 @@ func (s *Scanner) scanNewline() Lexeme {
 		nl := s.read()
 		buf.WriteRune(nl)
 
-		if !isNewline(nl) && !isWhitespace(nl) {
+		if nl == eof { // this needs to go here because unreading an EOF is an error.
+			return Lexeme{TEof, buf.String()}
+		} else if !isNewline(nl) && !isWhitespace(nl) {
 			break
 		}
 	}
@@ -137,8 +139,6 @@ func (s *Scanner) scanNewline() Lexeme {
 	ch := s.read() // already in buffer
 
 	switch ch {
-	case eof:
-		return Lexeme{TEof, buf.String()}
 	case '@':
 		return Lexeme{TAtSignHeadingLine, buf.String()}
 	case '#':
