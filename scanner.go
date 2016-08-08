@@ -4,10 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"log"
 	"unicode"
 )
 
 var eof = rune(0)
+
+type Lexeme struct {
+	Type  TokenType
+	Value string
+}
 
 // Scanner represents a lexical scanner.
 type Scanner struct {
@@ -39,7 +45,7 @@ func (s *Scanner) peek() rune {
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
-func (s *Scanner) scanWhitespace() (TokenType, string) {
+func (s *Scanner) scanWhitespace() Lexeme {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -57,7 +63,7 @@ func (s *Scanner) scanWhitespace() (TokenType, string) {
 		}
 	}
 
-	return TWhitespace, buf.String()
+	return Lexeme{TWhitespace, buf.String()}
 }
 
 // unread places the previously read rune back on the reader.
@@ -69,7 +75,7 @@ func (s *Scanner) unread() {
 }
 
 // Scan returns the next token and literal value.
-func (s *Scanner) Scan() (tok TokenType, lit string) {
+func (s *Scanner) Scan() Lexeme {
 	// Read the next rune.
 	ch := s.read()
 
@@ -93,17 +99,17 @@ func (s *Scanner) Scan() (tok TokenType, lit string) {
 	// Otherwise read the individual character.
 	switch ch {
 	case eof:
-		return TEof, ""
+		return Lexeme{TEof, ""}
 	case '*':
-		return TAstrisk, string(ch)
+		return Lexeme{TAstrisk, string(ch)}
 	case '-':
-		return TSigned, string(ch)
+		return Lexeme{TSigned, string(ch)}
 	}
 
-	return TIllegal, string(ch)
+	return Lexeme{TIllegal, string(ch)}
 }
 
-func (s *Scanner) scanNewline() (TokenType, string) {
+func (s *Scanner) scanNewline() Lexeme {
 	var buf bytes.Buffer
 
 	for {
@@ -120,25 +126,25 @@ func (s *Scanner) scanNewline() (TokenType, string) {
 
 	switch ch {
 	case eof:
-		return TEof, buf.String()
+		return Lexeme{TEof, buf.String()}
 	case '@':
-		return TAtSignHeadingLine, buf.String()
+		return Lexeme{TAtSignHeadingLine, buf.String()}
 	case '#':
-		return TOctoHeadingLine, buf.String()
+		return Lexeme{TOctoHeadingLine, buf.String()}
 	case '!':
-		return TExclaimLine, buf.String()
+		return Lexeme{TExclaimLine, buf.String()}
 	case '?':
-		return TQuestionLine, buf.String()
+		return Lexeme{TQuestionLine, buf.String()}
 	case ':':
 		return s.scanColonLine()
 	case '-':
-		return TDashLine, buf.String()
+		return Lexeme{TDashLine, buf.String()}
 	}
 
-	return TIllegal, buf.String()
+	return Lexeme{TIllegal, buf.String()}
 }
 
-func (s *Scanner) scanString() (TokenType, string) {
+func (s *Scanner) scanString() Lexeme {
 	var buf bytes.Buffer
 
 	mark := s.read()
@@ -155,10 +161,10 @@ func (s *Scanner) scanString() (TokenType, string) {
 		}
 	}
 
-	return TString, buf.String()
+	return Lexeme{TString, buf.String()}
 }
 
-func (s *Scanner) scanColonLine() (TokenType, string) {
+func (s *Scanner) scanColonLine() Lexeme {
 	var buf bytes.Buffer
 
 	if isWhitespace(s.peek()) {
@@ -177,10 +183,10 @@ func (s *Scanner) scanColonLine() (TokenType, string) {
 		}
 	}
 
-	return TColonLine, buf.String()
+	return Lexeme{TColonLine, buf.String()}
 }
 
-func (s *Scanner) scanIdent() (TokenType, string) {
+func (s *Scanner) scanIdent() Lexeme {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -199,7 +205,7 @@ func (s *Scanner) scanIdent() (TokenType, string) {
 	}
 
 	// Otherwise return as a regular identifier.
-	return TString, buf.String()
+	return Lexeme{TString, buf.String()}
 }
 
 // isWhitespace returns true if the rune is a space, tab, or newline.

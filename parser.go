@@ -9,10 +9,9 @@ import (
 // Parser represents a parser.
 type Parser struct {
 	s   *Scanner
-	buf struct {
-		tok TokenType // last read token
-		lit string    // last read literal
-		n   int       // buffer size (max=1)
+	buf struct { //todo replace with *Lexeme?
+		lex Lexeme
+		n   int // buffer size (max=1)
 	}
 }
 
@@ -23,18 +22,18 @@ func NewParser(s *Scanner) *Parser {
 	}
 }
 
-func (p *Parser) scan() (tok TokenType, lit string) {
+func (p *Parser) scan() (lex Lexeme) {
 	// If we have a token on the buffer, then return it.
 	if p.buf.n != 0 {
 		p.buf.n = 0
-		return p.buf.tok, p.buf.lit
+		return p.buf.lex
 	}
 
 	// Otherwise read the next token from the scanner.
-	tok, lit = p.s.Scan()
+	lex = p.s.Scan()
 
 	// Save it to the buffer in case we unscan later.
-	p.buf.tok, p.buf.lit = tok, lit
+	p.buf.lex = lex
 
 	return
 }
@@ -44,10 +43,10 @@ func (p *Parser) unscan() {
 	p.buf.n = 1
 }
 
-func (p *Parser) scanIgnoreWhitespace() (tok TokenType, lit string) {
-	tok, lit = p.scan()
-	if tok == TWhitespace {
-		tok, lit = p.scan()
+func (p *Parser) scanIgnoreWhitespace() (lex Lexeme) {
+	lex = p.scan()
+	if lex.Type == TWhitespace {
+		lex = p.scan()
 	}
 	return
 }
@@ -68,38 +67,35 @@ func (p *Parser) Parse() (*Schema, error) {
 
 TableLoop:
 	for {
-		var tok TokenType
-		var lit string
-
-		tok, lit = p.scanIgnoreWhitespace()
-		if tok == TEof {
+		lex := p.scanIgnoreWhitespace()
+		if lex.Type == TEof {
 			break
 		}
 
-		if !tokenArrayContains(tok, HeadingTokens) {
-			return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, HeadingTokens)
+		if !tokenArrayContains(lex.Type, HeadingTokens) {
+			return nil, fmt.Errorf("found %q %s, expected %s", lex.Value, lex.Type, HeadingTokens)
 		}
 
 		tbl := &CreateTable{
 			UniqueKeys: make(map[int]TableKeyColumns),
 			Keys:       make(map[int]TableKeyColumns),
 		}
-		if tok == TAtSignHeadingLine {
+		if lex.Type == TAtSignHeadingLine {
 			tbl.IsPsuedo = true
 		}
 
-		if tok, lit = p.scanIgnoreWhitespace(); tok != TString {
-			return nil, fmt.Errorf("found %q %s, expected TableName", lit, tok)
+		if lex = p.scanIgnoreWhitespace(); lex.Type != TString {
+			return nil, fmt.Errorf("found %q %s, expected TableName", lex.Value, lex.Type)
 		}
 
-		tbl.TableName = lit
+		tbl.TableName = lex.Value
 		sch.Tables = append(sch.Tables, tbl)
 
 	TblCommentLoop:
 		for {
-			comtok, comlit := p.scanIgnoreWhitespace()
-			if comtok == TColonLine {
-				tbl.TableComment = append(tbl.TableComment, strings.TrimSpace(comlit))
+			comlex := p.scanIgnoreWhitespace()
+			if comlex.Type == TColonLine {
+				tbl.TableComment = append(tbl.TableComment, strings.TrimSpace(comlex.Value))
 			} else {
 				// I don't believe this is nessessary anymore
 				// tbl.TableComment = strings.TrimSpace(tbl.TableComment)
@@ -110,26 +106,24 @@ TableLoop:
 
 		// ColumnLoop:
 		for {
-			var coltok TokenType
-			var collit string
-
-			if coltok, collit = p.scanIgnoreWhitespace(); !tokenArrayContains(coltok, ColumnTokens) {
-				if tokenArrayContains(coltok, HeadingTokens) {
+			comlex := p.scanIgnoreWhitespace()
+			if !tokenArrayContains(comlex.Type, ColumnTokens) {
+				if tokenArrayContains(comlex.Type, HeadingTokens) {
 					p.unscan()
 					continue TableLoop
 				}
 
-				if coltok == TEof {
+				if comlex.Type == TEof {
 					p.unscan()
 					continue TableLoop
 				}
 
-				return nil, fmt.Errorf("found %q %s, expected %s", collit, coltok, ColumnTokens)
+				return nil, fmt.Errorf("found %q %s, expected %s", comlex.Value, comlex.Type, ColumnTokens)
 			}
 
 			col := &TableColumn{}
 
-			switch coltok {
+			switch comlex.Type {
 			case TExclaimLine:
 				col.ColumnReferenceType = ColumnForeignKeyRegister
 			case TQuestionLine:
@@ -137,21 +131,20 @@ TableLoop:
 			case TDashLine:
 				col.ColumnReferenceType = ColumnRegular
 			default:
-				return nil, fmt.Errorf("unexpected token: %s", coltok)
+				return nil, fmt.Errorf("unexpected token: %s", comlex.Type)
 			}
 
-			var colntok TokenType
-			var colnlit string
-			if colntok, colnlit = p.scanIgnoreWhitespace(); colntok != TString {
-				return nil, fmt.Errorf("found %q %s, expected Column Name", colnlit, colntok)
+			colnlex := p.scanIgnoreWhitespace()
+			if colnlex.Type != TString {
+				return nil, fmt.Errorf("found %q %s, expected Column Name", colnlex.Value, colnlex.Type)
 			}
 
-			col.ColumnName = colnlit
+			col.ColumnName = colnlex.Value
 
 		ModLoop:
 			for {
-				modtok, _ := p.scanIgnoreWhitespace()
-				switch modtok {
+				modlex := p.scanIgnoreWhitespace()
+				switch modlex.Type {
 				case TAstrisk:
 					col.Nullable = true
 				case TSigned:
@@ -160,12 +153,12 @@ TableLoop:
 					p.unscan()
 					break ModLoop
 				default:
-					return nil, fmt.Errorf("unexpected token: %s", modtok)
+					return nil, fmt.Errorf("unexpected token: %s", modlex.Type)
 				}
 			} //todo limit to one of each
 
-			_, ctype := p.scan()
-			ctype, csize, err := strIntSuffixSplit(ctype)
+			clex := p.scan()
+			ctype, csize, err := strIntSuffixSplit(clex.Value)
 			if err != nil {
 				return nil, err
 			}
@@ -181,18 +174,18 @@ TableLoop:
 
 			// KEYLOOP:
 			for {
-				tok, lit := p.scanIgnoreWhitespace()
+				kllex := p.scanIgnoreWhitespace()
 				// log.Println(lit)
-				log.Println("xxx", tok, lit)
+				log.Println("xxx", kllex.Type, kllex.Value)
 
-				if tok != TString && tok != TAstrisk {
-					log.Println("keyloop continuing", tok, lit)
+				if kllex.Type != TString && kllex.Type != TAstrisk {
+					log.Println("keyloop continuing", kllex.Type, kllex.Value)
 					p.unscan()
 					break
 				}
 
 				// autoIncr := false
-				if tok == TAstrisk {
+				if kllex.Type == TAstrisk {
 					// autoIncr = true
 					if tbl.AutoIncrColumn == nil {
 						tbl.AutoIncrColumn = col
@@ -200,45 +193,45 @@ TableLoop:
 						return nil, fmt.Errorf("auto increment column already declared")
 					}
 
-					tok, lit = p.scanIgnoreWhitespace()
-					if tok != TString {
-						return nil, fmt.Errorf("found %q %s, expected %s", lit, tok, TString)
+					kllex = p.scanIgnoreWhitespace()
+					if kllex.Type != TString {
+						return nil, fmt.Errorf("found %q %s, expected %s", kllex.Value, kllex.Type, TString)
 					}
 
 					// continue KEYLOOP
 				}
 
-				log.Println("AAAAAAAAAAA", lit, tok)
-				if lit == "pk" {
-					log.Println("PRIMARY KEY", lit, tok)
+				log.Println("AAAAAAAAAAA", kllex)
+				if kllex.Value == "pk" {
+					log.Println("PRIMARY KEY", kllex)
 					tbl.PrimaryKey = append(tbl.PrimaryKey, col)
-				} else if lit[0:1] == "k" || lit[0:1] == "u" {
-					log.Println("KEY", lit, tok)
-					sPart, kIndex, err := strIntSuffixSplit(lit)
-					if err != nil || kIndex <= 0 {
-						return nil, fmt.Errorf("found '%s'; expected key name - %s", lit, err)
+				} else if kllex.Value[0:1] == "k" || kllex.Value[0:1] == "u" {
+					log.Println("KEY", kllex)
+					sPart, index, err := strIntSuffixSplit(kllex.Value)
+					if err != nil || index <= 0 {
+						return nil, fmt.Errorf("found '%s'; expected key name - %s", kllex.Value, err)
 					}
 
 					switch sPart {
 					case "k":
-						tbl.Keys[kIndex] = append(tbl.Keys[kIndex], col)
+						tbl.Keys[index] = append(tbl.Keys[index], col)
 					case "u":
-						tbl.UniqueKeys[kIndex] = append(tbl.UniqueKeys[kIndex], col)
+						tbl.UniqueKeys[index] = append(tbl.UniqueKeys[index], col)
 					default:
-						return nil, fmt.Errorf("found '%s'; expected key name - %s", lit, err)
+						return nil, fmt.Errorf("found '%s'; expected key name - %s", kllex.Value, err)
 					}
 
-					// strIntSuffixSplit
+					// strIntSuffixSpkllex.Value
 				} else {
-					return nil, fmt.Errorf("found '%s'; expected key name - %s", lit, err)
+					return nil, fmt.Errorf("found '%s'; expected key name - %s", kllex.Value, err)
 				}
 			}
 
 		ColCommentLoop:
 			for {
-				comtok, comlit := p.scanIgnoreWhitespace()
-				if comtok == TColonLine {
-					col.ColumnComment = append(col.ColumnComment, strings.TrimSpace(comlit))
+				comxlex := p.scanIgnoreWhitespace()
+				if comxlex.Type == TColonLine {
+					col.ColumnComment = append(col.ColumnComment, strings.TrimSpace(comxlex.Value))
 				} else {
 					// This shouldn't be nessessary
 					// col.ColumnComment = strings.TrimSpace(col.ColumnComment)
