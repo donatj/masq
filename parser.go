@@ -172,6 +172,13 @@ TableLoop:
 			col.ColumnSize = csize
 			tbl.TableColumns = append(tbl.TableColumns, col)
 
+			eqlex := p.scan()
+			if eqlex.Type == TEqualsString {
+				col.DefaultValue = &eqlex.Value
+			} else {
+				p.unscan()
+			}
+
 			// KEYLOOP:
 			for {
 				kllex := p.scanIgnoreWhitespace()

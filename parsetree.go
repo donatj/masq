@@ -124,6 +124,8 @@ type TableColumn struct {
 	ColumnSize          int
 	ColumnReferenceType ColumnReferenceType
 
+	DefaultValue *string
+
 	Signed   bool
 	Nullable bool
 

@@ -4,9 +4,9 @@ package main
 
 import "fmt"
 
-const _TokenType_name = "TIllegalTEofTOctoHeadingLineTAtSignHeadingLineTExclaimLineTQuestionLineTDashLineTColonLineTAstriskTSignedTWhitespaceTNewLineTStringTComment"
+const _TokenType_name = "TIllegalTEofTOctoHeadingLineTAtSignHeadingLineTExclaimLineTQuestionLineTDashLineTColonLineTAstriskTSignedTWhitespaceTNewLineTStringTEqualsStringTComment"
 
-var _TokenType_index = [...]uint8{0, 8, 12, 28, 46, 58, 71, 80, 90, 98, 105, 116, 124, 131, 139}
+var _TokenType_index = [...]uint8{0, 8, 12, 28, 46, 58, 71, 80, 90, 98, 105, 116, 124, 131, 144, 152}
 
 func (i TokenType) String() string {
 	if i < 0 || i >= TokenType(len(_TokenType_index)-1) {

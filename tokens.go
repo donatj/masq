@@ -24,6 +24,7 @@ const (
 	TWhitespace
 	TNewLine
 	TString
+	TEqualsString
 	TComment
 )
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"log"
 	"unicode"
 )
 
@@ -104,6 +103,19 @@ func (s *Scanner) Scan() Lexeme {
 		return Lexeme{TAstrisk, string(ch)}
 	case '-':
 		return Lexeme{TSigned, string(ch)}
+	case '=':
+		pch := s.peek()
+		if pch == '\'' || pch == '"' {
+			peq := s.scanString()
+			peq.Type = TEqualsString
+
+			return peq
+		}
+
+		peq := s.scanIdent()
+		peq.Type = TEqualsString
+
+		return peq
 	}
 
 	return Lexeme{TIllegal, string(ch)}
