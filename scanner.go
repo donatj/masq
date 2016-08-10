@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-var eof = rune(0)
+const eof = rune(0)
 
 type Lexeme struct {
 	Type  TokenType
