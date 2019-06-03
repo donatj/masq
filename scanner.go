@@ -164,7 +164,7 @@ func (s *Scanner) scanString() Lexeme {
 
 	for {
 		if ch := s.read(); ch == eof {
-			break
+			return Lexeme{TIllegal, string(ch)}
 		} else if ch == mark && prev != '\\' {
 			break
 		} else {
