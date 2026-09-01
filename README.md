@@ -1,6 +1,5 @@
 # MASQ
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/donatj/masq)](https://goreportcard.com/report/github.com/donatj/masq)
 [![GoDoc](https://godoc.org/github.com/donatj/masq?status.svg)](https://godoc.org/github.com/donatj/masq)
 [![Build Status](https://travis-ci.org/donatj/masq.svg?branch=master)](https://travis-ci.org/donatj/masq)
 
